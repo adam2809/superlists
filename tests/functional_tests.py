@@ -11,9 +11,9 @@ class LearningFT(unittest.TestCase):
         self.browser.quit()
 
 
-    def testOpensDjngoWecomePage(self):
+    def testTitle(self):
         self.browser.get('http://127.0.0.1:8000/')
-        self.assertIn('TODO',self.browser.title)
+        self.assertIn('Reminders',self.browser.title)
 
 
 #Checks if script was run from the command line
