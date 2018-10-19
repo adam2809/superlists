@@ -16,34 +16,47 @@ class NewVisitorTest(unittest.TestCase):
 
 
     def testCanCreateReminder(self):
-        #Test header and title
+        #Test website title
         self.assertIn('Reminders',self.browser.title)
-        headerText = self.browser.find_element_by_tag_name('h1').text()
-        self.assertIn('Your reminders')
-        
-        #Invitation to create a new reminder is shown
-        newReminderButton = self.browser.find_element_by_id('id_new_remider_button')
-        self.assertEquals(newReminderButton.get_attribute('TODO add attr name'),
-        'Add new reminder')
 
-        #User creates the new reminder by clicking the button
-        inputBox = self.browser.find_element_by_id('id_new_remider_input')
-        self.assertEquals(inputBox.get_attribute('TODO add attr name'),
-        'Enter remider title and time')
+        #Test current reminders header
+        currRemindersHeader = self.browser.find_element_by_tag_name('h1').text
+        self.assertIn('Your reminders',currRemindersHeader)
+
+        #User sees new reminder header
+        newReminderHeader = self.browser.find_element_by_tag_name('h2').text
+        self.assertIn('New reminder', newReminderHeader)
+
+        #User sees the new reminder inputs: name, days ahead, hour and minutes
+        inputName = self.browser.find_element_by_id('id_new_remider_name')
+        self.assertEquals(inputName.get_attribute('placeholder'),
+        'Name')
+
+        inputDaysAhead = self.browser.find_element_by_id('id_new_remider_days_ahead')
+        self.assertEquals(inputDaysAhead.get_attribute('placeholder'),
+        'Days ahead')
+
+        inputTime = self.browser.find_element_by_id('id_new_remider_time')
+        self.assertEquals(inputTime.get_attribute('placeholder'),
+        'Time')
+
+        #User sees new reminder submit button
+        submitButton = self.browser.find_element_by_tag_name('button')
+        self.assertIn(submitButton.text,'Submit')
 
         #User inputs 'Buy milk' as reminder title and the remind time as tomorrow at 11AM
-        inputBox.send_keys('Buy milk')
-        inputBox.send_keys(1) #I put 1 in because the app will set the reminder for n days ahead so 1 is tomorrow
-        inputBox.send_keys(11) #set hour
-        inputBox.send_keys(0) #set minutes
+        inputName.send_keys('Buy milk')
+        inputDaysAhead.send_keys(1) #I put 1 in because the app will set the reminder for n days ahead so 1 is tomorrow
+        inputTime.send_keys('11:00') #set time
 
-        #User clicks enter to confirm reminder creation
-        inputBox.send_keys(Keys.ENTER)
+        #User clicks the submit button to confirm reminder creation
+        submitButton.click()
 
         #Website is updated with the new reminder
-        remindersTable = self.browser.find_by_element_id('id_reminder_table')
+        remindersTable = self.browser.find_element_by_id('id_reminder_table')
         rows = remindersTable.find_elements_by_id('tr')
-        self.assertTrue(any(row.text == 'Buy milk at 11:00 tomorrow' for row in rows))
+        self.assertTrue(any(row.text == 'Buy milk at 11:00 tomorrow' for row in rows),
+        'New reminder not in current reminders table')
 
 
 #Checks if this program was started from the command line
