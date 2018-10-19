@@ -15,13 +15,12 @@ class NewVisitorTest(unittest.TestCase):
         self.browser.quit()
 
 
-    def testTitle(self):
+    def testCanCreateReminder(self):
+        #Test header and title
         self.assertIn('Reminders',self.browser.title)
         headerText = self.browser.find_element_by_tag_name('h1').text()
         self.assertIn('Your reminders')
-
-
-    def testCanCreateReminder(self):
+        
         #Invitation to create a new reminder is shown
         newReminderButton = self.browser.find_element_by_id('id_new_remider_button')
         self.assertEquals(newReminderButton.get_attribute('TODO add attr name'),
