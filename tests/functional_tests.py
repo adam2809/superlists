@@ -2,6 +2,7 @@ from selenium import webdriver
 import unittest
 import time
 from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import StaleElementReferenceException
 
 class NewVisitorTest(unittest.TestCase):
     def setUp(self):
@@ -13,6 +14,13 @@ class NewVisitorTest(unittest.TestCase):
 
     def tearDown(self):
         self.browser.quit()
+
+
+    def checkIfElementInRemindersTable(self, element):
+        remindersTable = self.browser.find_element_by_id('id_reminder_table')
+        rows = remindersTable.find_elements_by_tag_name('tr')
+        self.assertTrue(any(row.text == element for row in rows),
+        f'New reminder not in reminder table. The table contents are:\n{remindersTable.text}')
 
 
     def testCanCreateReminder(self):
@@ -52,35 +60,33 @@ class NewVisitorTest(unittest.TestCase):
 
         #User clicks the submit button to confirm reminder creation
         submitButton.click()
-        self.browser.implicitly_wait(1)
+        self.browser.implicitly_wait(3)
 
         #Website is updated with the new reminder
-        remindersTable = self.browser.find_element_by_id('id_reminder_table')
-        rows = remindersTable.find_elements_by_tag_name('tr')
-        self.assertTrue(any(row.text == '1: Buy milk at 11:00 in 1 days' for row in rows),
-        f'New reminder not in reminder table. The table contents are:\n{remindersTable.text}')
+        self.checkIfElementInRemindersTable('1: Buy milk at 11:00 in 1 days')
 
         #User creates another reminder
-        inputName.send_keys('Go to class')
-        inputDaysAhead.send_keys('4') #I put 1 in because the app will set the reminder for n days ahead so 1 is tomorrow
-        inputTime.send_keys('08:55') #set time
-        time.sleep(1)
-
-        #User clicks the submit button to confirm reminder creation
         while True:
             try:
+                inputName.send_keys('Go to class')
+                inputDaysAhead.send_keys('4')
+                inputTime.send_keys('08:55')
+
+                #User clicks the submit button to confirm reminder creation
                 submitButton.click()
-            except:
-                self.browser.implicitly_wait(1)
-                print('Waiting for page to load...')
+            except StaleElementReferenceException:
+                inputName = self.browser.find_element_by_id('id_new_remider_name')
+                inputDaysAhead = self.browser.find_element_by_id('id_new_remider_days_ahead')
+                inputTime = self.browser.find_element_by_id('id_new_remider_time')
+                submitButton = self.browser.find_element_by_tag_name('button')
+                print('Waiting for elements to load...')
+                time.sleep(1)
                 continue
             break
 
+
         #User seees the second reminder in the table
-        remindersTable = self.browser.find_element_by_id('id_reminder_table')
-        rows = remindersTable.find_elements_by_tag_name('tr')
-        self.assertTrue(any(row.text == '2: Go to class at 08:55 in 4 days' for row in rows),
-        f'New reminder not in reminder table. The table contents are:\n{remindersTable.text}')
+        self.checkIfElementInRemindersTable('2: Go to class at 08:55 in 4 days')
 
 
 #Checks if this program was started from the command line

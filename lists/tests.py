@@ -3,6 +3,7 @@ from django.urls import resolve
 from django.http import HttpRequest
 
 from lists.views import homePage
+from lists.models import Item
 
 class HomePageTest(TestCase):
     def testHomePageReturnsCorrectHtml(self):
@@ -17,3 +18,21 @@ class HomePageTest(TestCase):
         self.assertIn('1',responseString)
         self.assertIn('11:00',responseString)
         self.assertTemplateUsed(response, 'home.html')
+
+class DBTests(TestCase):
+        def testSavingAndRetrievingReminders(self):
+            firstItem = Item()
+            firstItem.text = 'Very nice first item'
+            firstItem.save()
+
+            secondItem = Item()
+            secondItem.text = 'This is my second item'
+            secondItem.save()
+
+            savedItems = Item.objects.all()
+            self.assertEqual(savedItems.count(),2)
+
+            firstSavedItem = savedItems[0]
+            secondSavedItem = savedItems[1]
+            self.assertEqual(firstSavedItem.text,'Very nice first item')
+            self.assertEqual(secondSavedItem.text,'This is my second item')
