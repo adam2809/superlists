@@ -12,7 +12,9 @@
 
     <h1>Your reminders</h1>
     <table id='id_reminder_table'>
-      <tr><td>{{newReminderText}}</td></tr>
+      {% for reminder in reminders %}
+        <tr><td>{{ reminder }}</td></tr>
+      {% endfor %}
     </table>
   </body>
 </html>
