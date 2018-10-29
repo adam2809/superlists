@@ -8,5 +8,6 @@ def homePage(request):
         Item.objects.create(name=request.POST['reminder_name'],
                             daysAhead=request.POST['reminder_days_ahead'],
                             time=request.POST['reminder_time'])
-    reminderTextList = [f'{r.id}: {r.name} at {r.time} in {r.daysAhead} days' for r in Item.objects.all()]
+    reminderTextList = [f'{r.id}: {r.name} at {r.time} in {r.daysAhead} days'
+                        for r in Item.objects.all()]
     return render(request,'home.html',{'reminders':reminderTextList})

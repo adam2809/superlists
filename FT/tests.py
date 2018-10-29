@@ -1,15 +1,18 @@
 from selenium import webdriver
-import unittest
-import time
-from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import StaleElementReferenceException
 
-class NewVisitorTest(unittest.TestCase):
+import unittest
+import time
+
+from django.test import LiveServerTestCase
+
+class NewVisitorTest(LiveServerTestCase):
     def setUp(self):
         self.browser = webdriver.Firefox()
         self.browser.implicitly_wait(3)
+        
         #User enters the websites URL into their browser
-        self.browser.get('http://127.0.0.1:8000/')
+        self.browser.get(self.live_server_url)
 
 
     def tearDown(self):
