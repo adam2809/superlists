@@ -1,32 +1,94 @@
 from selenium import webdriver
 from selenium.common.exceptions import StaleElementReferenceException
 
-import unittest
 import time
+
+import inspect
+
+from lists.models import Item
 
 from django.test import LiveServerTestCase
 
+MAX_WAIT = 10
+
 class NewVisitorTest(LiveServerTestCase):
     def setUp(self):
+        print('Opening browser')
         self.browser = webdriver.Firefox()
         self.browser.implicitly_wait(3)
-        
-        #User enters the websites URL into their browser
-        self.browser.get(self.live_server_url)
 
 
     def tearDown(self):
+        print('Quitting browser')
         self.browser.quit()
 
 
-    def checkIfElementInRemindersTable(self, element):
+    def checkIfElementInTable(self, element):
         remindersTable = self.browser.find_element_by_id('id_reminder_table')
         rows = remindersTable.find_elements_by_tag_name('tr')
-        self.assertTrue(any(row.text == element for row in rows),
-        f'New reminder not in reminder table. The table contents are:\n{remindersTable.text}')
+        caller = inspect.getouterframes(inspect.currentframe(),2)[1][3]
+        print(f'Current table text:\n{remindersTable.text}\nCalled by {caller}')
+        return any(row.text == element for row in rows)
 
 
-    def testCanCreateReminder(self):
+    def createAndWaitNewReminder(self, input):
+        #User creates another reminder
+        while True:
+            waitStart = time.time()
+            try:
+                inputName = self.browser.find_element_by_id('id_new_remider_name')
+                inputDaysAhead = self.browser.find_element_by_id('id_new_remider_days_ahead')
+                inputTime = self.browser.find_element_by_id('id_new_remider_time')
+                submitButton = self.browser.find_element_by_tag_name('button')
+
+                inputName.send_keys(input[0])
+                inputDaysAhead.send_keys(input[1])
+                inputTime.send_keys(input[2])
+
+                #User clicks the submit button to confirm reminder creation
+                submitButton.click()
+            except StaleElementReferenceException as e:
+                if time.time() - waitStart > MAX_WAIT:
+                    raise e
+                print('Waiting for elements to load...')
+                time.sleep(0.2)
+                continue
+            break
+
+
+    def testCanCreateReminderMultUsers(self):
+        # First user visits the page and creates reminder
+        self.browser.get(self.live_server_url)
+
+        self.createAndWaitNewReminder(('Buy milk','1','11:00'))
+        self.assertTrue(self.checkIfElementInTable('1: Buy milk at 11:00 in 1 days'))
+
+        currURL = self.browser.current_url
+        self.assertRegex(currURL, '/lists/.+')
+
+        # First user quits
+        self.browser.quit()
+        self.browser = webdriver.Firefox()
+
+        # Second user visits page and creates reminder. They see a different table
+        # than the first user
+        self.createAndWaitNewReminder(('Go to class','4','08:55'))
+
+        currURL = self.browser.current_url
+        self.assertRegex('/lists/.+')
+
+        self.assertTrue(self.checkIfElementInTable('1: Go to class at 08:55 in 4 days'))
+        self.assertFalse(self.checkIfElementInTable('1: Buy milk at 11:00 in 1 days'))
+
+
+    def testCanCreateReminderSingleUser(self):
+
+        reminderTextList = [f'{r.id}: {r.name} at {r.time} in {r.daysAhead} days'
+                        for r in Item.objects.all()]
+        print(f"Reminders in database: {reminderTextList}")
+        #User enters the websites URL into their browser
+        self.browser.get(self.live_server_url)
+
         #Test website title
         self.assertIn('Reminders',self.browser.title)
 
@@ -55,43 +117,10 @@ class NewVisitorTest(LiveServerTestCase):
         submitButton = self.browser.find_element_by_tag_name('button')
         self.assertIn(submitButton.text,'Submit')
 
-        #User inputs 'Buy milk' as reminder title and the remind time as tomorrow at 11AM
-        inputName.send_keys('Buy milk')
-        inputDaysAhead.send_keys('1') #I put 1 in because the app will set the reminder for n days ahead so 1 is tomorrow
-        inputTime.send_keys('11:00') #set time
-        time.sleep(1)
+        #User creates new reminder and sees it in the table
+        self.createAndWaitNewReminder(('Buy milk','1','11:00'))
+        self.assertTrue(self.checkIfElementInTable('1: Buy milk at 11:00 in 1 days'))
 
-        #User clicks the submit button to confirm reminder creation
-        submitButton.click()
-        self.browser.implicitly_wait(3)
-
-        #Website is updated with the new reminder
-        self.checkIfElementInRemindersTable('1: Buy milk at 11:00 in 1 days')
-
-        #User creates another reminder
-        while True:
-            try:
-                inputName.send_keys('Go to class')
-                inputDaysAhead.send_keys('4')
-                inputTime.send_keys('08:55')
-
-                #User clicks the submit button to confirm reminder creation
-                submitButton.click()
-            except StaleElementReferenceException:
-                inputName = self.browser.find_element_by_id('id_new_remider_name')
-                inputDaysAhead = self.browser.find_element_by_id('id_new_remider_days_ahead')
-                inputTime = self.browser.find_element_by_id('id_new_remider_time')
-                submitButton = self.browser.find_element_by_tag_name('button')
-                print('Waiting for elements to load...')
-                time.sleep(1)
-                continue
-            break
-
-
-        #User seees the second reminder in the table
-        self.checkIfElementInRemindersTable('2: Go to class at 08:55 in 4 days')
-
-
-#Checks if this program was started from the command line
-if __name__ == '__main__':
-    unittest.main()
+        #User creates second and sees it in the table
+        self.createAndWaitNewReminder(('Go to class','4','08:55'))
+        self.assertTrue(self.checkIfElementInTable('2: Go to class at 08:55 in 4 days'))
