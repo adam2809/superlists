@@ -8,9 +8,15 @@ def homePage(request):
         Item.objects.create(name=request.POST['reminder_name'],
                             daysAhead=request.POST['reminder_days_ahead'],
                             time=request.POST['reminder_time'])
-        return redirect('/')
+        return redirect('/lists/THElist')
     #TODO not a relieable way to enumerate db items as they wont
     # always be in the same order
     reminderTextList = [f'{i+1}: {r.name} at {r.time} in {r.daysAhead} days'
                         for i,r in enumerate(Item.objects.all())]
     return render(request,'home.html',{'reminders':reminderTextList})
+
+
+def viewList(request):
+    reminderTextList = [f'{i+1}: {r.name} at {r.time} in {r.daysAhead} days'
+                        for i,r in enumerate(Item.objects.all())]
+    return render(request,'reminders.html',{'reminders':reminderTextList})

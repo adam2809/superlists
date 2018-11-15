@@ -6,13 +6,22 @@ from lists.views import homePage
 from lists.models import Item
 
 class HomePageTest(TestCase):
+
+    def testRedirect(self):
+        response = self.client.post('/', data={'reminder_name':'Buy milk',
+        'reminder_days_ahead':'1','reminder_time':'11:00'})
+        self.assertEqual(response.status_code,302)
+        self.assertEqual(response['location'],'/lists/THElist')
+
+
     def testHomePageReturnsCorrectHtml(self):
         self.client.get('/')
         self.assertTemplateUsed('home.html')
 
 
     def testPOSTRequest(self):
-        response = self.client.post('/', data={'reminder_name':'Buy milk','reminder_days_ahead':'1','reminder_time':'11:00'})
+        response = self.client.post('/', data={'reminder_name':'Buy milk',
+        'reminder_days_ahead':'1','reminder_time':'11:00'})
 
         self.assertEqual(Item.objects.count(),1)
 
@@ -21,6 +30,7 @@ class HomePageTest(TestCase):
         self.assertEqual(recentItem.daysAhead, '1')
         self.assertEqual(recentItem.time, '11:00')
 
+        response = self.client.get('/')
         responseString = response.content.decode()
         self.assertIn('Buy milk',responseString)
         self.assertIn('1',responseString)
@@ -39,6 +49,12 @@ class HomePageTest(TestCase):
     def testOnlySavesItemWhenNecessary(self):
         self.client.get('/')
         self.assertEqual(Item.objects.count(),0)
+
+
+class ViewRemindersTest(TestCase):
+    def testListTemplateUsed(self):
+        response = self.client.get('/lists/THElist')
+        self.assertTemplateUsed(response,'reminders.html')
 
 
 class DBTests(TestCase):
@@ -67,3 +83,13 @@ class DBTests(TestCase):
             self.assertEqual(secondSavedItem.name,'Seconds item name is here')
             self.assertEqual(secondSavedItem.daysAhead,'3')
             self.assertEqual(secondSavedItem.time,'00:01')
+
+
+class ListViewTest(TestCase):
+    def testDisplaysAllItems(self):
+        Item.objects.create(name='testname',daysAhead='3',time='00:00')
+        Item.objects.create(name='rando name for testing',daysAhead='6',time='12:00')
+
+        response = self.client.get('/lists/THElist')
+        self.assertContains(response,'1: testname at 00:00 in 3 days')
+        self.assertContains(response,'2: rando name for testing at 12:00 in 6 days',)

@@ -13,13 +13,11 @@ MAX_WAIT = 10
 
 class NewVisitorTest(LiveServerTestCase):
     def setUp(self):
-        print('Opening browser')
         self.browser = webdriver.Firefox()
         self.browser.implicitly_wait(3)
 
 
     def tearDown(self):
-        print('Quitting browser')
         self.browser.quit()
 
 
@@ -69,13 +67,14 @@ class NewVisitorTest(LiveServerTestCase):
         # First user quits
         self.browser.quit()
         self.browser = webdriver.Firefox()
+        self.browser.get(self.live_server_url)
 
         # Second user visits page and creates reminder. They see a different table
         # than the first user
         self.createAndWaitNewReminder(('Go to class','4','08:55'))
 
         currURL = self.browser.current_url
-        self.assertRegex('/lists/.+')
+        self.assertRegex(currURL,'/lists/.+')
 
         self.assertTrue(self.checkIfElementInTable('1: Go to class at 08:55 in 4 days'))
         self.assertFalse(self.checkIfElementInTable('1: Buy milk at 11:00 in 1 days'))
@@ -85,7 +84,6 @@ class NewVisitorTest(LiveServerTestCase):
 
         reminderTextList = [f'{r.id}: {r.name} at {r.time} in {r.daysAhead} days'
                         for r in Item.objects.all()]
-        print(f"Reminders in database: {reminderTextList}")
         #User enters the websites URL into their browser
         self.browser.get(self.live_server_url)
 
