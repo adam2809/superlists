@@ -1,0 +1,20 @@
+<html>
+  <title>Reminders</title>
+  <body>
+    <h2>New reminder</h2>
+    <form method="POST" form="newReminderForm" action='/'>
+      <input id="id_new_remider_name" name="reminder_name" placeholder="Name"/>
+      <input id="id_new_remider_days_ahead" name="reminder_days_ahead" placeholder="Days ahead"/>
+      <input id="id_new_remider_time" name="reminder_time" placeholder="Time"/>
+      {% csrf_token %}
+      <button type="submit">Submit</button>
+    </form>
+
+    <h1>Your reminders</h1>
+    <table id='id_reminder_table'>
+      {% for reminder in reminders %}
+        <tr><td>{{ reminder }}</td></tr>
+      {% endfor %}
+    </table>
+  </body>
+</html>
