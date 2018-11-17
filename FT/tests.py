@@ -42,7 +42,7 @@ class NewVisitorTest(LiveServerTestCase):
                 inputName.send_keys(input[0])
                 inputDaysAhead.send_keys(input[1])
                 inputTime.send_keys(input[2])
-
+                
                 #User clicks the submit button to confirm reminder creation
                 submitButton.click()
             except StaleElementReferenceException as e:
@@ -81,9 +81,6 @@ class NewVisitorTest(LiveServerTestCase):
 
 
     def testCanCreateReminderSingleUser(self):
-
-        reminderTextList = [f'{r.id}: {r.name} at {r.time} in {r.daysAhead} days'
-                        for r in Item.objects.all()]
         #User enters the websites URL into their browser
         self.browser.get(self.live_server_url)
 
