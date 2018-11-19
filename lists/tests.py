@@ -26,7 +26,7 @@ class NewListTest(TestCase):
         response = self.client.post('/lists/new',data={'reminder_name':'New reminder',
         'reminder_days_ahead':'3','reminder_time':'11:00'})
         self.assertEqual(response.status_code,302)
-        self.assertEqual(response['location'],'/lists/THElist')
+        self.assertRegex(response['location'],'/lists/.+')
 
 
     def testPOSTRequest(self):
@@ -40,24 +40,17 @@ class NewListTest(TestCase):
         self.assertEqual(recentItem.daysAhead, '1')
         self.assertEqual(recentItem.time, '11:00')
 
-        response = self.client.get('/lists/THElist/')
+        response = self.client.get(f'/lists/{recentItem.list.id}/')
         responseString = response.content.decode()
         self.assertIn('Buy milk',responseString)
         self.assertIn('1',responseString)
         self.assertIn('11:00',responseString)
 
 
-class ViewRemindersTest(TestCase):
-    def testListTemplateUsed(self):
-        response = self.client.get('/lists/THElist/')
-        self.assertTemplateUsed(response,'reminders.html')
-
-
 class DBTests(TestCase):
     def testSavingAndRetrievingReminders(self):
         lst = List()
         lst.save()
-
 
         firstItem = Item()
         firstItem.name = 'Very nice first item name'
@@ -113,3 +106,25 @@ class ListViewTest(TestCase):
         self.assertContains(response,'2: an item of list 1 at 19:03 in 10 days')
         self.assertNotContains(response,'1: testname at 00:00 in 3 days')
         self.assertNotContains(response,'2: rando name for testing at 12:00 in 6 days')
+
+
+class AddViewTest(TestCase):
+    def testAddsItemToExistingList(self):
+        self.client.post('/lists/new',data={'reminder_name':'New reminder',
+        'reminder_days_ahead':'3','reminder_time':'11:00'})
+
+        item = Item.objects.first()
+        response = self.client.get(f'/lists/{item.list.id}/')
+        self.assertContains(response,'New reminder')
+
+        self.client.post(f'/lists/add/{item.list.id}/',data={'reminder_name':'Added reminder',
+        'reminder_days_ahead':'7','reminder_time':'21:00'})
+        response = self.client.get(f'/lists/{item.list.id}/')
+        self.assertContains(response,'Added reminder')
+
+
+    def testRedirectAfterAdd(self):
+        response = self.client.post('/lists/new',data={'reminder_name':'New reminder',
+        'reminder_days_ahead':'3','reminder_time':'11:00'})
+        self.assertEqual(response.status_code,302)
+        self.assertEqual(response['location'],'/lists/1/')
