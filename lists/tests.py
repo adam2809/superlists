@@ -40,7 +40,7 @@ class NewListTest(TestCase):
         self.assertEqual(recentItem.daysAhead, '1')
         self.assertEqual(recentItem.time, '11:00')
 
-        response = self.client.get('/lists/THElist')
+        response = self.client.get('/lists/THElist/')
         responseString = response.content.decode()
         self.assertIn('Buy milk',responseString)
         self.assertIn('1',responseString)
@@ -49,7 +49,7 @@ class NewListTest(TestCase):
 
 class ViewRemindersTest(TestCase):
     def testListTemplateUsed(self):
-        response = self.client.get('/lists/THElist')
+        response = self.client.get('/lists/THElist/')
         self.assertTemplateUsed(response,'reminders.html')
 
 
@@ -93,10 +93,23 @@ class DBTests(TestCase):
 
 
 class ListViewTest(TestCase):
-    def testDisplaysAllItems(self):
-        Item.objects.create(name='testname',daysAhead='3',time='00:00')
-        Item.objects.create(name='rando name for testing',daysAhead='6',time='12:00')
+    def testDisplaysAllItemsForGivenList(self):
+        lst0 = List.objects.create()
+        Item.objects.create(name='testname',daysAhead='3',time='00:00',list=lst0)
+        Item.objects.create(name='rando name for testing',daysAhead='6',time='12:00',list=lst0)
 
-        response = self.client.get('/lists/THElist')
+        response = self.client.get(f'/lists/{lst0.id}/')
         self.assertContains(response,'1: testname at 00:00 in 3 days')
-        self.assertContains(response,'2: rando name for testing at 12:00 in 6 days',)
+        self.assertContains(response,'2: rando name for testing at 12:00 in 6 days')
+        self.assertNotContains(response,'1: secondname at 00:15 in 2 days')
+        self.assertNotContains(response,'2: an item of list 1 at 19:03 in 10 days')
+
+        lst1 = List.objects.create()
+        Item.objects.create(name='secondname',daysAhead='2',time='00:15',list=lst1)
+        Item.objects.create(name='an item of list 1',daysAhead='10',time='19:03',list=lst1)
+
+        response = self.client.get(f'/lists/{lst1.id}/')
+        self.assertContains(response,'1: secondname at 00:15 in 2 days')
+        self.assertContains(response,'2: an item of list 1 at 19:03 in 10 days')
+        self.assertNotContains(response,'1: testname at 00:00 in 3 days')
+        self.assertNotContains(response,'2: rando name for testing at 12:00 in 6 days')
