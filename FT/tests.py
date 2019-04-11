@@ -11,22 +11,11 @@ from django.test import LiveServerTestCase
 
 MAX_WAIT = 10
 
-class NewVisitorTest(LiveServerTestCase):
-    def setUp(self):
-        self.browser = webdriver.Firefox()
-        self.browser.implicitly_wait(3)
-
-
-    def tearDown(self):
-        self.browser.quit()
-
-
+class TestingUtils:
     def checkIfElementInTable(self, element):
         remindersTable = self.browser.find_element_by_id('id_reminder_table')
         rows = remindersTable.find_elements_by_tag_name('tr')
-        # caller = inspect.getouterframes(inspect.currentframe(),2)[1][3]
-        # print(f'Current table text:\n{remindersTable.text}\nCalled by {caller}')
-        return any(row.text == element for row in rows)
+
 
 
     def createAndWaitNewReminder(self, input):
@@ -52,6 +41,17 @@ class NewVisitorTest(LiveServerTestCase):
                 time.sleep(0.2)
                 continue
             break
+
+
+class NewVisitorTest(LiveServerTestCase,TestingUtils):
+    def setUp(self):
+        self.browser = webdriver.Firefox()
+        self.browser.implicitly_wait(3)
+
+
+    def tearDown(self):
+        self.browser.quit()
+
 
 
     def testCanCreateReminderMultUsers(self):
@@ -123,7 +123,7 @@ class NewVisitorTest(LiveServerTestCase):
         self.assertTrue(self.checkIfElementInTable('2: Go to class at 08:55 in 4 days'))
 
 
-class MultUsersSelectingAndAddingToListTests(LiveServerTestCase):
+class MultUsersSelectingAndAddingToListTests(LiveServerTestCase,TestingUtils):
     def setUp(self):
         self.browser = webdriver.Firefox()
         self.browser.implicitly_wait(3)
