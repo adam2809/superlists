@@ -121,7 +121,7 @@ class NewVisitorTest(LiveServerTestCase):
         self.assertTrue(checkIfElementInTable('2: Go to class at 08:55 in 4 days',self.browser))
 
 
-class MultUsersSelectingAndAddingToList:
+class MultUsersSelectingAndAddingToList(LiveServerTestCase):
     def setUp(self):
         self.browser = webdriver.Firefox()
         self.browser.implicitly_wait(3)
