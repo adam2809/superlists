@@ -121,3 +121,35 @@ class NewVisitorTest(LiveServerTestCase):
         #User creates second and sees it in the table
         self.createAndWaitNewReminder(('Go to class','4','08:55'))
         self.assertTrue(self.checkIfElementInTable('2: Go to class at 08:55 in 4 days'))
+
+
+class MultUsersAddingToListTests(LiveServerTestCase):
+    def setUp(self):
+        self.browser = webdriver.Firefox()
+        self.browser.implicitly_wait(3)
+
+        self.browser.get(self.live_server_url)
+    #   First user creates a reminder
+        self.createAndWaitNewReminder(('Buy milk','1','11:00'))
+
+        # First user quits
+        self.browser.quit()
+        self.browser = webdriver.Firefox()
+        self.browser.get(self.live_server_url)
+
+        # Second user visits page and creates reminder.
+        self.createAndWaitNewReminder(('Go to class','4','08:55'))
+
+        self.browser.quit()
+        self.browser = webdriver.Firefox()
+        self.browser.get(self.live_server_url)
+
+    def testFirstUserCanAddReminder():
+        chooseListDropdown = self.browser.find_element_by_id('choose_list_dropdown')
+        dropdownOptions = chooseListDropdown.find_elements_by_tag_name('option')
+
+        try:
+            option1 = [option for option in dropdownOptions if option.text == '1'][0]
+        except IndexError:
+            self.fail("List of first user not found in dropdown menu")
+        option1.click()
