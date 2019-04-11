@@ -128,15 +128,15 @@ class MultUsersSelectingAndAddingToList(LiveServerTestCase):
 
         self.browser.get(self.live_server_url)
     #   First user creates a reminder
-        createAndWaitNewReminder(('Buy milk','1','11:00'),self)
-        restartBrowser()
+        createAndWaitNewReminder(('Buy milk','1','11:00'),self.browser)
+        self.restartBrowser()
 
         # Second user visits page and creates reminder.
-        createAndWaitNewReminder(('Go to class','4','08:55'),self)
-        restartBrowser()
+        createAndWaitNewReminder(('Go to class','4','08:55'),self.browser)
+        self.restartBrowser()
 
 
-    def restartBrowser():
+    def restartBrowser(self):
         self.browser.quit()
         self.browser = webdriver.Firefox()
         self.browser.get(self.live_server_url)
@@ -145,7 +145,7 @@ class MultUsersSelectingAndAddingToList(LiveServerTestCase):
         self.browser.quit()
 
 
-    def testusersCanSelectListAndAddReminder():
+    def testusersCanSelectListAndAddReminder(self):
         chooseListDropdown = self.browser.find_element_by_id('choose_list_dropdown')
         dropdownOptions = chooseListDropdown.find_elements_by_tag_name('option')
 
