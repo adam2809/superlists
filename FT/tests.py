@@ -84,7 +84,6 @@ class NewVisitorTest(LiveServerTestCase,TestingUtils):
         #User enters the websites URL into their browser
         self.browser.get(self.live_server_url)
 
-
         #Test website title
         self.assertIn('Reminders',self.browser.title)
 
