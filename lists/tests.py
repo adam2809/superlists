@@ -47,17 +47,9 @@ class NewListTest(TestCase):
         self.assertIn('11:00',responseString)
 
 
-class AddToListTest(TestCase):
-    def setUp(self):
-        response = self.client.post('/lists/new', data={'reminder_name':'Buy milk',
-        'reminder_days_ahead':'1','reminder_time':'11:00'})
-
-    def testAddsItemToExistingList
-
-
 class AddViewTest(TestCase):
-    def setUp():
-        self.client.post('/lists/new',data={'reminder_name':'New reminder',
+    def setUp(self):
+        self.response = self.client.post('/lists/new',data={'reminder_name':'New reminder',
         'reminder_days_ahead':'3','reminder_time':'11:00'})
 
     def testAddsItemToExistingList(self):
@@ -72,9 +64,9 @@ class AddViewTest(TestCase):
 
 
     def testRedirectAfterAdd(self):
-        self.assertEqual(response.status_code,302)
-        self.assertEqual(response['location'],'/lists/1/')
-    
+        self.assertEqual(self.response.status_code,302)
+        self.assertEqual(self.response['location'],'/lists/1/')
+
 
 class ListViewTest(TestCase):
     def testDisplaysAllItemsForGivenList(self):

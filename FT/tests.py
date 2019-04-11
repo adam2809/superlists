@@ -155,3 +155,8 @@ class MultUsersSelectingAndAddingToListTests(LiveServerTestCase,TestingUtils):
         except IndexError:
             self.fail("List of first user not found in dropdown menu")
         option1.click()
+
+        self.createAndWaitNewReminder(('something','sth','doesnt matter'))
+        assertTrue(self.checkIfElementInTable('2: something at sth in doesnt matter days'))
+
+        restartBrowser()
