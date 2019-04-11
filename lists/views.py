@@ -12,12 +12,14 @@ def createItemFromPOST(request,listID):
 
 
 def homePage(request):
-    return render(request,'home.html')
+    return render(request,'reminders.html')
+
 
 def newList(request):
     lst = List.objects.create()
     createItemFromPOST(request,lst.id)
     return redirect(f'/lists/{lst.id}/')
+
 
 def viewList(request,listID):
     lst = List.objects.get(id=listID)

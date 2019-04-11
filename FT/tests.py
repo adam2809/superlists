@@ -24,8 +24,8 @@ class NewVisitorTest(LiveServerTestCase):
     def checkIfElementInTable(self, element):
         remindersTable = self.browser.find_element_by_id('id_reminder_table')
         rows = remindersTable.find_elements_by_tag_name('tr')
-        caller = inspect.getouterframes(inspect.currentframe(),2)[1][3]
-        print(f'Current table text:\n{remindersTable.text}\nCalled by {caller}')
+        # caller = inspect.getouterframes(inspect.currentframe(),2)[1][3]
+        # print(f'Current table text:\n{remindersTable.text}\nCalled by {caller}')
         return any(row.text == element for row in rows)
 
 
@@ -42,7 +42,7 @@ class NewVisitorTest(LiveServerTestCase):
                 inputName.send_keys(input[0])
                 inputDaysAhead.send_keys(input[1])
                 inputTime.send_keys(input[2])
-                
+
                 #User clicks the submit button to confirm reminder creation
                 submitButton.click()
             except StaleElementReferenceException as e:
@@ -62,7 +62,7 @@ class NewVisitorTest(LiveServerTestCase):
         self.assertTrue(self.checkIfElementInTable('1: Buy milk at 11:00 in 1 days'))
 
         currURL = self.browser.current_url
-        self.assertRegex(currURL, '/lists/.+')
+        self.assertRegex(currURL, '/lists/1')
 
         # First user quits
         self.browser.quit()
@@ -74,7 +74,7 @@ class NewVisitorTest(LiveServerTestCase):
         self.createAndWaitNewReminder(('Go to class','4','08:55'))
 
         currURL = self.browser.current_url
-        self.assertRegex(currURL,'/lists/.+')
+        self.assertRegex(currURL,'/lists/2')
 
         self.assertTrue(self.checkIfElementInTable('1: Go to class at 08:55 in 4 days'))
         self.assertFalse(self.checkIfElementInTable('1: Buy milk at 11:00 in 1 days'))
@@ -83,13 +83,15 @@ class NewVisitorTest(LiveServerTestCase):
     def testCanCreateReminderSingleUser(self):
         #User enters the websites URL into their browser
         self.browser.get(self.live_server_url)
+        self.browser.set_window_size(1024,768)
+
 
         #Test website title
         self.assertIn('Reminders',self.browser.title)
 
         #Test current reminders header
-        currRemindersHeader = self.browser.find_element_by_tag_name('h1').text
-        self.assertIn('Your reminders',currRemindersHeader)
+        currRemindersHeader = self.browser.find_element_by_tag_name('h1')
+        self.assertIn('Your reminders',currRemindersHeader.text)
 
         #User sees new reminder header
         newReminderHeader = self.browser.find_element_by_tag_name('h2').text

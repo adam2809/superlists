@@ -47,6 +47,58 @@ class NewListTest(TestCase):
         self.assertIn('11:00',responseString)
 
 
+class AddToListTest(TestCase):
+    def setUp(self):
+        response = self.client.post('/lists/new', data={'reminder_name':'Buy milk',
+        'reminder_days_ahead':'1','reminder_time':'11:00'})
+
+    def testAddsItemToExistingList
+
+
+class AddViewTest(TestCase):
+    def setUp():
+        self.client.post('/lists/new',data={'reminder_name':'New reminder',
+        'reminder_days_ahead':'3','reminder_time':'11:00'})
+
+    def testAddsItemToExistingList(self):
+        item = Item.objects.first()
+        response = self.client.get(f'/lists/{item.list.id}/')
+        self.assertContains(response,'New reminder')
+
+        self.client.post(f'/lists/add/{item.list.id}/',data={'reminder_name':'Added reminder',
+        'reminder_days_ahead':'7','reminder_time':'21:00'})
+        response = self.client.get(f'/lists/{item.list.id}/')
+        self.assertContains(response,'Added reminder')
+
+
+    def testRedirectAfterAdd(self):
+        self.assertEqual(response.status_code,302)
+        self.assertEqual(response['location'],'/lists/1/')
+    
+
+class ListViewTest(TestCase):
+    def testDisplaysAllItemsForGivenList(self):
+        lst0 = List.objects.create()
+        Item.objects.create(name='testname',daysAhead='3',time='00:00',list=lst0)
+        Item.objects.create(name='rando name for testing',daysAhead='6',time='12:00',list=lst0)
+
+        response = self.client.get(f'/lists/{lst0.id}/')
+        self.assertContains(response,'1: testname at 00:00 in 3 days')
+        self.assertContains(response,'2: rando name for testing at 12:00 in 6 days')
+        self.assertNotContains(response,'1: secondname at 00:15 in 2 days')
+        self.assertNotContains(response,'2: an item of list 1 at 19:03 in 10 days')
+
+        lst1 = List.objects.create()
+        Item.objects.create(name='secondname',daysAhead='2',time='00:15',list=lst1)
+        Item.objects.create(name='an item of list 1',daysAhead='10',time='19:03',list=lst1)
+
+        response = self.client.get(f'/lists/{lst1.id}/')
+        self.assertContains(response,'1: secondname at 00:15 in 2 days')
+        self.assertContains(response,'2: an item of list 1 at 19:03 in 10 days')
+        self.assertNotContains(response,'1: testname at 00:00 in 3 days')
+        self.assertNotContains(response,'2: rando name for testing at 12:00 in 6 days')
+
+
 class DBTests(TestCase):
     def testSavingAndRetrievingReminders(self):
         lst = List()
@@ -83,48 +135,3 @@ class DBTests(TestCase):
         self.assertEqual(secondSavedItem.daysAhead,'3')
         self.assertEqual(secondSavedItem.time,'00:01')
         self.assertEqual(secondSavedItem.list,lst)
-
-
-class ListViewTest(TestCase):
-    def testDisplaysAllItemsForGivenList(self):
-        lst0 = List.objects.create()
-        Item.objects.create(name='testname',daysAhead='3',time='00:00',list=lst0)
-        Item.objects.create(name='rando name for testing',daysAhead='6',time='12:00',list=lst0)
-
-        response = self.client.get(f'/lists/{lst0.id}/')
-        self.assertContains(response,'1: testname at 00:00 in 3 days')
-        self.assertContains(response,'2: rando name for testing at 12:00 in 6 days')
-        self.assertNotContains(response,'1: secondname at 00:15 in 2 days')
-        self.assertNotContains(response,'2: an item of list 1 at 19:03 in 10 days')
-
-        lst1 = List.objects.create()
-        Item.objects.create(name='secondname',daysAhead='2',time='00:15',list=lst1)
-        Item.objects.create(name='an item of list 1',daysAhead='10',time='19:03',list=lst1)
-
-        response = self.client.get(f'/lists/{lst1.id}/')
-        self.assertContains(response,'1: secondname at 00:15 in 2 days')
-        self.assertContains(response,'2: an item of list 1 at 19:03 in 10 days')
-        self.assertNotContains(response,'1: testname at 00:00 in 3 days')
-        self.assertNotContains(response,'2: rando name for testing at 12:00 in 6 days')
-
-
-class AddViewTest(TestCase):
-    def testAddsItemToExistingList(self):
-        self.client.post('/lists/new',data={'reminder_name':'New reminder',
-        'reminder_days_ahead':'3','reminder_time':'11:00'})
-
-        item = Item.objects.first()
-        response = self.client.get(f'/lists/{item.list.id}/')
-        self.assertContains(response,'New reminder')
-
-        self.client.post(f'/lists/add/{item.list.id}/',data={'reminder_name':'Added reminder',
-        'reminder_days_ahead':'7','reminder_time':'21:00'})
-        response = self.client.get(f'/lists/{item.list.id}/')
-        self.assertContains(response,'Added reminder')
-
-
-    def testRedirectAfterAdd(self):
-        response = self.client.post('/lists/new',data={'reminder_name':'New reminder',
-        'reminder_days_ahead':'3','reminder_time':'11:00'})
-        self.assertEqual(response.status_code,302)
-        self.assertEqual(response['location'],'/lists/1/')
