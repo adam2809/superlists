@@ -83,7 +83,6 @@ class NewVisitorTest(LiveServerTestCase,TestingUtils):
     def testCanCreateReminderSingleUser(self):
         #User enters the websites URL into their browser
         self.browser.get(self.live_server_url)
-        self.browser.set_window_size(1024,768)
 
 
         #Test website title
@@ -131,20 +130,23 @@ class MultUsersSelectingAndAddingToListTests(LiveServerTestCase,TestingUtils):
         self.browser.get(self.live_server_url)
     #   First user creates a reminder
         self.createAndWaitNewReminder(('Buy milk','1','11:00'))
-
-        # First user quits
-        self.browser.quit()
-        self.browser = webdriver.Firefox()
-        self.browser.get(self.live_server_url)
+        self.restartBrowser()
 
         # Second user visits page and creates reminder.
         self.createAndWaitNewReminder(('Go to class','4','08:55'))
+        self.restartBrowser()
 
+
+    def restartBrowser(self):
         self.browser.quit()
         self.browser = webdriver.Firefox()
         self.browser.get(self.live_server_url)
 
-    def testFirstUserCanSelectListAndAddReminder():
+    def tearDown(self):
+        self.browser.quit()
+
+
+    def testFirstUserCanSelectListAndAddReminder(self):
         chooseListDropdown = self.browser.find_element_by_id('choose_list_dropdown')
         dropdownOptions = chooseListDropdown.find_elements_by_tag_name('option')
 
