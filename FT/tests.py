@@ -123,7 +123,7 @@ class NewVisitorTest(LiveServerTestCase):
         self.assertTrue(self.checkIfElementInTable('2: Go to class at 08:55 in 4 days'))
 
 
-class MultUsersAddingToListTests(LiveServerTestCase):
+class MultUsersSelectingAndAddingToListTests(LiveServerTestCase):
     def setUp(self):
         self.browser = webdriver.Firefox()
         self.browser.implicitly_wait(3)
@@ -144,7 +144,7 @@ class MultUsersAddingToListTests(LiveServerTestCase):
         self.browser = webdriver.Firefox()
         self.browser.get(self.live_server_url)
 
-    def testFirstUserCanAddReminder():
+    def testFirstUserCanSelectListAndAddReminder():
         chooseListDropdown = self.browser.find_element_by_id('choose_list_dropdown')
         dropdownOptions = chooseListDropdown.find_elements_by_tag_name('option')
 
